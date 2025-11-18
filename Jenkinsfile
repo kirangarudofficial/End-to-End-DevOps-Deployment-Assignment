@@ -27,7 +27,7 @@ pipeline {
                 docker --version
 
                 echo "===== Building Docker Image ====="
-                sudo docker build -t devops-flask-app .
+                docker build -t devops-flask-app .
                 '''
             }
         }
@@ -41,7 +41,7 @@ pipeline {
                 )]) {
                     sh '''
                     echo "===== Docker Hub Login ====="
-                    echo "$DOCKER_PASS" | sudo docker login -u "$DOCKER_USER" --password-stdin
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                     '''
                 }
             }
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 sh '''
                 echo "===== Tagging Docker Image ====="
-                sudo docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest
+                docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest
                 '''
             }
         }
@@ -60,7 +60,7 @@ pipeline {
             steps {
                 sh '''
                 echo "===== Pushing Docker Image to Docker Hub ====="
-                sudo docker push $DOCKERHUB_REPO:latest
+                docker push $DOCKERHUB_REPO:latest
                 '''
             }
         }
@@ -69,16 +69,16 @@ pipeline {
             steps {
                 sh '''
                 echo "===== Stopping Old Container ====="
-                sudo docker stop devops-flask-app || true
+                docker stop devops-flask-app || true
 
                 echo "===== Removing Old Container ====="
-                sudo docker rm devops-flask-app || true
+                docker rm devops-flask-app || true
 
                 echo "===== Pulling Latest Docker Image ====="
-                sudo docker pull $DOCKERHUB_REPO:latest
+                docker pull $DOCKERHUB_REPO:latest
 
                 echo "===== Starting New Container ====="
-                sudo docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest
+                docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest
 
                 echo "===== Deployment Successful ====="
                 '''
