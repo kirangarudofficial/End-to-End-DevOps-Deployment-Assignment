@@ -160,10 +160,13 @@ Access API:
 http://<EC2-Public-IP>:5000/hello
 ```
 
-## 📸 Screenshots (Add in GitHub)
+## 📸 Screenshots
 
 - ✔️ Jenkins Pipeline Success
+- <img width="1920" height="1080" alt="Screenshot (293)" src="https://github.com/user-attachments/assets/04a9fead-5689-431a-89d1-584f16c1ed1d" />
+
 - ✔️ Browser response of /hello endpoint
+<img width="1920" height="1080" alt="Screenshot (295)" src="https://github.com/user-attachments/assets/111db4db-afe3-477c-9cda-06dd4c79350b" />
 
 ## 🛠️ Tools & Technologies
 
