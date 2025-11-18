@@ -2,10 +2,16 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_REPO = "kirangarud/devops-flask-app"
+        DOCKERHUB_REPO = "kgarud30/devops-flask-app"
     }
 
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
 
         stage('Checkout Code') {
             steps {
@@ -17,8 +23,11 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                echo "Building Docker Image..."
-                docker build -t devops-flask-app .
+                echo "===== Checking Docker Installation ====="
+                docker --version
+
+                echo "===== Building Docker Image ====="
+                sudo docker build -t devops-flask-app .
                 '''
             }
         }
@@ -26,13 +35,13 @@ pipeline {
         stage('Docker Hub Login') {
             steps {
                 withCredentials([usernamePassword(
-                credentialsId: 'dockerhub',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_PASS'
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
-                    echo "Logging into Docker Hub..."
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    echo "===== Docker Hub Login ====="
+                    echo "$DOCKER_PASS" | sudo docker login -u "$DOCKER_USER" --password-stdin
                     '''
                 }
             }
@@ -41,8 +50,8 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 sh '''
-                echo "Tagging Docker Image..."
-                docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest
+                echo "===== Tagging Docker Image ====="
+                sudo docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest
                 '''
             }
         }
@@ -50,8 +59,8 @@ pipeline {
         stage('Push Image to Docker Hub') {
             steps {
                 sh '''
-                echo "Pushing Docker Image..."
-                docker push $DOCKERHUB_REPO:latest
+                echo "===== Pushing Docker Image to Docker Hub ====="
+                sudo docker push $DOCKERHUB_REPO:latest
                 '''
             }
         }
@@ -59,17 +68,19 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                echo "Stopping old container..."
-                docker stop devops-flask-app || true
+                echo "===== Stopping Old Container ====="
+                sudo docker stop devops-flask-app || true
 
-                echo "Removing old container..."
-                docker rm devops-flask-app || true
+                echo "===== Removing Old Container ====="
+                sudo docker rm devops-flask-app || true
 
-                echo "Pulling latest image..."
-                docker pull $DOCKERHUB_REPO:latest
+                echo "===== Pulling Latest Docker Image ====="
+                sudo docker pull $DOCKERHUB_REPO:latest
 
-                echo "Starting new container..."
-                docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest
+                echo "===== Starting New Container ====="
+                sudo docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest
+
+                echo "===== Deployment Successful ====="
                 '''
             }
         }
@@ -77,10 +88,10 @@ pipeline {
 
     post {
         success {
-            echo "CI/CD Pipeline executed successfully!"
+            echo "🎉 CI/CD Pipeline executed successfully!"
         }
         failure {
-            echo "Pipeline failed. Check logs."
+            echo "❌ Pipeline failed — Check logs."
         }
     }
 }
