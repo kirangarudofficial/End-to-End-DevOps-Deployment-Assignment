@@ -162,6 +162,9 @@ http://<EC2-Public-IP>:5000/hello
 
 ## 📸 Screenshots
 
+- ✔️ Architecture Diagram
+<img width="1024" height="1024" alt="Generated Image November 18, 2025 - 10_34PM (1)" src="https://github.com/user-attachments/assets/35370003-234a-400f-bb09-aa21e5be454c" />
+
 - ✔️ Jenkins Pipeline Success
 - <img width="1920" height="1080" alt="Screenshot (293)" src="https://github.com/user-attachments/assets/04a9fead-5689-431a-89d1-584f16c1ed1d" />
 
