@@ -7,7 +7,7 @@ pipeline {
 
     stages {
 
-        stage('Clone Repo') {
+        stage('Checkout Code') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/kirangarudofficial/End-to-End-DevOps-Deployment-Assignment.git'
@@ -16,39 +16,71 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-flask-app .'
+                sh '''
+                echo "Building Docker Image..."
+                docker build -t devops-flask-app .
+                '''
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Docker Hub Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub',
-                    usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                withCredentials([usernamePassword(
+                credentialsId: 'dockerhub',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "Logging into Docker Hub..."
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
                 }
             }
         }
 
-        stage('Tag Image') {
+        stage('Tag Docker Image') {
             steps {
-                sh 'docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest'
+                sh '''
+                echo "Tagging Docker Image..."
+                docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest
+                '''
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Image to Docker Hub') {
             steps {
-                sh 'docker push $DOCKERHUB_REPO:latest'
+                sh '''
+                echo "Pushing Docker Image..."
+                docker push $DOCKERHUB_REPO:latest
+                '''
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy Application') {
             steps {
-                sh 'docker stop devops-flask-app || true'
-                sh 'docker rm devops-flask-app || true'
-                sh 'docker pull $DOCKERHUB_REPO:latest'
-                sh 'docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest'
+                sh '''
+                echo "Stopping old container..."
+                docker stop devops-flask-app || true
+
+                echo "Removing old container..."
+                docker rm devops-flask-app || true
+
+                echo "Pulling latest image..."
+                docker pull $DOCKERHUB_REPO:latest
+
+                echo "Starting new container..."
+                docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "CI/CD Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs."
         }
     }
 }
