@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_REPO = "kirangarud/devops-flask-app"
+    }
+
+    stages {
+
+        stage('Clone Repo') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/kirangarudofficial/End-to-End-DevOps-Deployment-Assignment.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t devops-flask-app .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                    usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                }
+            }
+        }
+
+        stage('Tag Image') {
+            steps {
+                sh 'docker tag devops-flask-app:latest $DOCKERHUB_REPO:latest'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                sh 'docker push $DOCKERHUB_REPO:latest'
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                sh 'docker stop devops-flask-app || true'
+                sh 'docker rm devops-flask-app || true'
+                sh 'docker pull $DOCKERHUB_REPO:latest'
+                sh 'docker run -d -p 5000:5000 --name devops-flask-app $DOCKERHUB_REPO:latest'
+            }
+        }
+    }
+}
